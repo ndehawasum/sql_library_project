@@ -268,7 +268,7 @@ WHERE
     rs.return_date IS NULL
     AND
     (CURRENT_DATE - ist.issued_date) > 30
-ORDER BY 1
+ORDER BY 1;
 ```
 
 
@@ -403,12 +403,27 @@ ON e.emp_id = ist.issued_emp_id
 JOIN
 branch as b
 ON e.branch_id = b.branch_id
-GROUP BY 1, 2
+GROUP BY 1, 2;
 ```
 
 **Task 18: Identify Members Issuing High-Risk Books**  
 Write a query to identify members who have issued books more than twice with the status "damaged" in the books table. Display the member name, book title, and the number of times they've issued damaged books.    
 
+```sql
+
+select 
+	m.member_name,
+	r.book_quality,
+	i.issued_book_name,
+	count (distinct i.issued_id) as Total_issued
+FROM return_status r
+	LEFT JOIN issued_status i
+	ON r.issued_id = i.issued_id
+		LEFT JOIN members m
+		ON i.issued_member_id = m.member_id
+WHERE r.book_quality = 'Damaged'
+GROUP BY 1,2,3
+```
 
 **Task 19: Stored Procedure**
 Objective:
@@ -486,7 +501,28 @@ Description: Write a CTAS query to create a new table that lists each member and
     Member ID
     Number of overdue books
     Total fines
+    
+```sql
 
+SELECT 
+    m.member_id,
+    COUNT(r.return_id IS NULL),
+    (DATEDIFF(CURRENT_DATE, i.issued_date) - 30) AS overdue_by_days,
+    (DATEDIFF(CURRENT_DATE, i.issued_date) - 30) * 0.50 AS fine
+FROM
+    members m
+        JOIN
+    issued_status i ON m.member_id = i.issued_member_id
+        JOIN
+    books b ON i.issued_book_isbn = b.isbn
+        LEFT JOIN
+    return_status r ON i.issued_id = r.issued_id
+WHERE
+    r.return_id IS NULL
+        AND (DATEDIFF(CURRENT_DATE, i.issued_date) - 30) > 0
+GROUP BY member_id;
+
+```
 
 
 ## Reports
@@ -498,25 +534,3 @@ Description: Write a CTAS query to create a new table that lists each member and
 ## Conclusion
 
 This project demonstrates the application of SQL skills in creating and managing a library management system. It includes database setup, data manipulation, and advanced querying, providing a solid foundation for data management and analysis.
-
-## How to Use
-
-1. **Clone the Repository**: Clone this repository to your local machine.
-   ```sh
-   git clone https://github.com/najirh/Library-System-Management---P2.git
-   ```
-
-2. **Set Up the Database**: Execute the SQL scripts in the `database_setup.sql` file to create and populate the database.
-3. **Run the Queries**: Use the SQL queries in the `analysis_queries.sql` file to perform the analysis.
-4. **Explore and Modify**: Customize the queries as needed to explore different aspects of the data or answer additional questions.
-
-## Author - Zero Analyst
-
-This project showcases SQL skills essential for database management and analysis. For more content on SQL and data analysis, connect with me through the following channels:
-
-- **YouTube**: [Subscribe to my channel for tutorials and insights](https://www.youtube.com/@zero_analyst)
-- **Instagram**: [Follow me for daily tips and updates](https://www.instagram.com/zero_analyst/)
-- **LinkedIn**: [Connect with me professionally](https://www.linkedin.com/in/najirr)
-- **Discord**: [Join our community for learning and collaboration](https://discord.gg/36h5f2Z5PK)
-
-Thank you for your interest in this project!
